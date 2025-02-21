@@ -5,7 +5,6 @@ import axios from "axios";
 
 const TaskCard = ({ task, setEditingTask, refetch }) => {
   const { _id, title, description, dueDate, category } = task;
-  console.log("TaskCard Data:", task);
 
   const handleDelete = async () => {
     Swal.fire({

@@ -24,7 +24,14 @@ const TaskForm = ({ refetch }) => {
     }
 
     const userData = { name: user?.displayName, email: user?.email };
-    const newTask = { title, description, category, dueDate, userData };
+    const newTask = {
+      title,
+      description,
+      category,
+      dueDate,
+      userData,
+      order: 0, // Default order (will be updated by the backend)
+    };
 
     try {
       await axios.post("http://localhost:5000/tasks", newTask);

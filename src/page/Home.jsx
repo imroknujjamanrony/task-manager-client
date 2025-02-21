@@ -8,15 +8,16 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
+  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import TaskForm from "./taskform/TaskForm";
-import SortableTask from "../components/sortable/SortableTask";
-import TaskColumn from "../components/taskcolumn/TaskColumn";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import useAuth from "../hooks/useAuth";
+import TaskForm from "./taskform/TaskForm";
+import SortableTask from "../components/sortable/SortableTask";
+import TaskColumn from "../components/taskcolumn/TaskColumn";
 
 const Home = () => {
   const { user } = useAuth();
@@ -46,29 +47,60 @@ const Home = () => {
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
-    if (over && active.id !== over.id) {
-      const movedTask = tasks.find((task) => task._id === active.id);
-      const overTask = tasks.find((task) => task._id === over.id);
+    if (!over || active.id === over.id) return;
 
-      if (movedTask && overTask) {
-        const newCategory = overTask.category;
+    const activeTask = tasks.find((task) => task._id === active.id);
+    const overTask = tasks.find((task) => task._id === over.id);
 
-        const { _id, ...updatedTask } = {
-          ...movedTask,
-          category: newCategory,
+    if (activeTask && overTask) {
+      if (activeTask.category === overTask.category) {
+        // Reorder tasks within the same category
+        const categoryTasks = tasks
+          .filter((task) => task.category === activeTask.category)
+          .sort((a, b) => a.order - b.order);
+
+        const oldIndex = categoryTasks.findIndex(
+          (task) => task._id === active.id
+        );
+        const newIndex = categoryTasks.findIndex(
+          (task) => task._id === over.id
+        );
+
+        const newCategoryTasks = arrayMove(categoryTasks, oldIndex, newIndex);
+
+        const updatedTasks = newCategoryTasks.map((task, index) => ({
+          ...task,
+          order: index + 1,
+        }));
+
+        console.log("Updated Tasks for Reorder:", updatedTasks);
+
+        // Send the updated tasks to the backend
+        try {
+          await axios.put("http://localhost:5000/tasks/reorder-tasks", {
+            tasks: updatedTasks,
+          });
+          refetch(); // Refresh the task list
+        } catch (error) {
+          console.error("Failed to reorder tasks:", error);
+        }
+      } else {
+        // Move task to a different category
+        const updatedTask = {
+          ...activeTask,
+          category: overTask.category,
         };
+
+        console.log("Updated Task for Move:", updatedTask);
 
         try {
           await axios.put(
-            `http://localhost:5000/tasks/${movedTask._id}`,
+            `http://localhost:5000/tasks/${activeTask._id}`,
             updatedTask
           );
           refetch();
         } catch (error) {
-          console.error(
-            "Failed to update task:",
-            error.response?.data || error.message
-          );
+          console.error("Failed to update task:", error);
         }
       }
     }
@@ -92,20 +124,23 @@ const Home = () => {
         Task Management
       </h2>
       <TaskForm refetch={refetch} />
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
         <main className="grid grid-cols-3 gap-2">
+          {/* To-Do Column */}
           <SortableContext
-            items={todoTasks}
+            items={todoTasks.map((task) => task._id)}
             strategy={verticalListSortingStrategy}
           >
             <TaskColumn title="To-Do">
               {todoTasks.map((task) => (
                 <SortableTask
                   key={task._id}
+                  id={task._id}
                   task={task}
                   setEditingTask={setEditingTask}
                   refetch={refetch}
@@ -114,14 +149,16 @@ const Home = () => {
             </TaskColumn>
           </SortableContext>
 
+          {/* In-Progress Column */}
           <SortableContext
-            items={inProgressTasks}
+            items={inProgressTasks.map((task) => task._id)}
             strategy={verticalListSortingStrategy}
           >
             <TaskColumn title="In-Progress">
               {inProgressTasks.map((task) => (
                 <SortableTask
                   key={task._id}
+                  id={task._id}
                   task={task}
                   setEditingTask={setEditingTask}
                   refetch={refetch}
@@ -130,14 +167,16 @@ const Home = () => {
             </TaskColumn>
           </SortableContext>
 
+          {/* Done Column */}
           <SortableContext
-            items={doneTasks}
+            items={doneTasks.map((task) => task._id)}
             strategy={verticalListSortingStrategy}
           >
             <TaskColumn title="Done">
               {doneTasks.map((task) => (
                 <SortableTask
                   key={task._id}
+                  id={task._id}
                   task={task}
                   setEditingTask={setEditingTask}
                   refetch={refetch}
