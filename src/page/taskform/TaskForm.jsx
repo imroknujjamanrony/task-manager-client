@@ -1,11 +1,11 @@
 import { useState } from "react";
-import axios from "axios";
+import useAuth from "../../hooks/useAuth";
 import Swal from "sweetalert2";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import useAuth from "../../hooks/useAuth";
+import axios from "axios";
 
-const TaskForm = () => {
+const TaskForm = ({ refetch }) => {
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -36,6 +36,8 @@ const TaskForm = () => {
       setCategory("");
       setDueDate(new Date());
       setIsModalOpen(false);
+
+      refetch(); // Refresh task list
     } catch (error) {
       Swal.fire("Error", "Failed to add task!", "error");
       console.error("Error adding task:", error);
@@ -44,17 +46,13 @@ const TaskForm = () => {
 
   return (
     <div className="p-6">
-      {/* Button to Open Modal */}
       <button className="btn btn-primary" onClick={() => setIsModalOpen(true)}>
         Add Task
       </button>
-
-      {/* Daisy UI Modal */}
       {isModalOpen && (
         <dialog className="modal modal-open">
           <div className="modal-box">
             <h2 className="text-xl font-semibold mb-4">Add New Task</h2>
-
             <input
               type="text"
               placeholder="Task Title"
@@ -62,29 +60,30 @@ const TaskForm = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-
             <textarea
               placeholder="Task Description"
               className="textarea textarea-bordered w-full mb-3"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-
-            <input
-              type="text"
-              placeholder="Task Category"
-              className="input input-bordered w-full mb-3"
+            <select
+              className="select select-bordered w-full mb-3"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-            />
-
+            >
+              <option value="" disabled>
+                Select Category
+              </option>
+              <option value="To-Do">To-Do</option>
+              <option value="In-Progress">In-Progress</option>
+              <option value="Done">Done</option>
+            </select>
             <label className="block font-semibold mb-2">Due Date:</label>
             <DatePicker
               selected={dueDate}
               onChange={(date) => setDueDate(date)}
               className="input input-bordered w-full"
             />
-
             <div className="modal-action">
               <button className="btn btn-success" onClick={handleSubmit}>
                 Submit
