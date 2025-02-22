@@ -6,7 +6,7 @@ Task Management is a web application designed to help users efficiently manage t
 
 ## Live Links
 
-- **Live Website**: Task Management App
+- **Live Website**: [Task Management App](https://task-management-fdbe6.web.app/)
 
 ## Dependencies
 
@@ -43,7 +43,7 @@ Task Management is a web application designed to help users efficiently manage t
 #### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/task-management-backend.git
+git clone https://github.com/yourusername/task-management-server.git
 cd task-management-backend
 ```
 
