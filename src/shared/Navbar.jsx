@@ -1,9 +1,11 @@
 import { NavLink } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import { FaTasks } from "react-icons/fa";
+import { FaTasks, FaBars } from "react-icons/fa";
+import { useState } from "react";
 
 const Navbar = () => {
   const { user, logOut } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -14,48 +16,74 @@ const Navbar = () => {
   };
 
   return (
-    <div className="navbar bg-blue-600  text-white shadow-lg px-">
-      {/* Left: Logo & Title */}
-      <div className="flex-1">
-        <NavLink
-          to="/"
-          className="btn btn-ghost text-xl font-bold flex items-center gap-2"
-        >
+    <nav className="bg-blue-600 text-white shadow-lg">
+      <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-3">
+        {/* Left: Logo & Title */}
+        <NavLink to="/" className="text-xl font-bold flex items-center gap-2">
           <FaTasks className="text-2xl" />
-          Task Management
+          <span>Task Management</span>
         </NavLink>
-      </div>
 
-      {/* Right: Menu */}
-      <div className="flex-none">
-        <ul className="menu menu-horizontal flex gap-3">
-          <img
-            src={user?.photoURL} // Replace with your actual logo/image URL
-            alt="Logo"
-            className="w-12 h-10 rounded-full"
-          />
-
+        {/* Right: Desktop Menu */}
+        <div className="hidden md:flex items-center gap-6">
+          {user && (
+            <img
+              src={user?.photoURL}
+              alt="User"
+              className="w-10 h-10 rounded-full border-2 border-white"
+            />
+          )}
           {user ? (
             <>
-              <li>
-                <p className="text-base font-normal">{user?.displayName}</p>
-              </li>
-              <li>
-                <button className="btn btn-error" onClick={handleLogout}>
-                  Logout
-                </button>
-              </li>
+              <p className="text-base font-normal">{user?.displayName}</p>
+              <button className="btn btn-sm btn-error" onClick={handleLogout}>
+                Logout
+              </button>
             </>
           ) : (
-            <li>
-              <NavLink to="/login" className="btn btn-success">
-                Login
-              </NavLink>
-            </li>
+            <NavLink to="/login" className="btn btn-sm btn-success">
+              Login
+            </NavLink>
           )}
-        </ul>
+        </div>
+
+        {/* Hamburger Menu for Mobile */}
+        <button
+          className="md:hidden text-2xl"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <FaBars />
+        </button>
       </div>
-    </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-blue-700 py-3 space-y-3 text-center">
+          {user && (
+            <img
+              src={user?.photoURL}
+              alt="User"
+              className="w-12 h-12 mx-auto rounded-full border-2 border-white"
+            />
+          )}
+          {user ? (
+            <>
+              <p className="text-base">{user?.displayName}</p>
+              <button
+                className="btn btn-sm btn-error w-full"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <NavLink to="/login" className="btn btn-sm btn-success w-full">
+              Login
+            </NavLink>
+          )}
+        </div>
+      )}
+    </nav>
   );
 };
 

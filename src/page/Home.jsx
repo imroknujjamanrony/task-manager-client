@@ -193,7 +193,7 @@ const Home = () => {
         collisionDetection={closestCorners}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {categories.map((category) => (
             <SortableContext
               key={category}
