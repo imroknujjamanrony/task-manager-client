@@ -1,15 +1,19 @@
-/* eslint-disable react/prop-types */
 import { FaTrash, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 import axios from "axios";
+
+const MySwal = withReactContent(Swal);
 
 const TaskCard = ({ task, setEditingTask, refetch }) => {
   const { _id, title, description, dueDate, category } = task;
 
-  const handleDelete = async () => {
-    Swal.fire({
+  // Handle Delete Functionality
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    MySwal.fire({
       title: "Are you sure?",
-      text: "You won't be able to revert this!",
+      text: "This action cannot be undone.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -19,13 +23,20 @@ const TaskCard = ({ task, setEditingTask, refetch }) => {
       if (result.isConfirmed) {
         try {
           await axios.delete(`http://localhost:5000/tasks/${_id}`);
-          Swal.fire("Deleted!", "Your task has been deleted.", "success");
+          MySwal.fire("Deleted!", "Your task has been deleted.", "success");
           refetch(); // Refresh task list
         } catch (error) {
-          Swal.fire("Error!", "Failed to delete task.", "error");
+          MySwal.fire("Error!", "Failed to delete task.", "error");
         }
       }
     });
+  };
+
+  // Handle Edit Functionality
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    // console.log("Edit button clicked", task);
+    setEditingTask(task);
   };
 
   return (
@@ -38,13 +49,15 @@ const TaskCard = ({ task, setEditingTask, refetch }) => {
       <div className="flex justify-between mt-4">
         <button
           className="btn btn-sm btn-warning flex items-center"
-          onClick={() => setEditingTask(task)}
+          onClick={handleEdit}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <FaEdit className="mr-1" /> Edit
         </button>
         <button
           className="btn btn-sm btn-error flex items-center"
           onClick={handleDelete}
+          onPointerDown={(e) => e.stopPropagation()}
         >
           <FaTrash className="mr-1" /> Delete
         </button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   DndContext,
   closestCorners,
@@ -18,10 +18,15 @@ import TaskColumn from "../components/taskcolumn/TaskColumn";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import useAuth from "../hooks/useAuth";
+import Modal from "react-modal"; // Import Modal for displaying EditTaskForm
+import EditTaskForm from "../components/EditTaskForm";
+
+Modal.setAppElement("#root"); // Set the app root element for accessibility
 
 const Home = () => {
   const { user } = useAuth();
-  const queryClient = useQueryClient(); // Get the QueryClient instance
+  const queryClient = useQueryClient();
+  const userEmail = user?.email;
   const [editingTask, setEditingTask] = useState(null);
 
   // Define sensors for drag-and-drop
@@ -35,34 +40,39 @@ const Home = () => {
     data: tasks = [],
     isLoading,
     error,
+    refetch,
   } = useQuery({
-    queryKey: ["tasks", user?.email],
+    queryKey: ["tasks", userEmail],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/tasks/${user?.email}`);
+      const res = await axios.get(`http://localhost:5000/tasks/${userEmail}`);
       return res.data;
     },
-    enabled: !!user?.email,
+    enabled: !!userEmail,
   });
 
-  if (isLoading)
-    return <span className="loading loading-infinity loading-lg"></span>;
-  if (error)
-    return <p className="text-center text-red-500">Error loading tasks</p>;
+  // Monitor tasks data
+  // useEffect(() => {
+  //   console.log("Tasks data updated:", tasks);
+  // }, [tasks]);
 
-  // Group tasks by category
-  const tasksByCategory = {
-    "To-Do": [],
-    "In-Progress": [],
-    Done: [],
-  };
+  // Monitor editingTask state
+  // useEffect(() => {
+  //   console.log("Current editingTask:", editingTask);
+  // }, [editingTask]);
 
-  tasks.forEach((task) => {
-    tasksByCategory[task.category]?.push(task);
-  });
+  // Group tasks by category using useMemo
+  const tasksByCategory = useMemo(() => {
+    return {
+      "To-Do": tasks.filter((task) => task.category === "To-Do"),
+      "In-Progress": tasks.filter((task) => task.category === "In-Progress"),
+      Done: tasks.filter((task) => task.category === "Done"),
+    };
+  }, [tasks]);
 
   // List of categories
   const categories = Object.keys(tasksByCategory);
 
+  // Handle drag and drop events
   const handleDragEnd = async (event) => {
     const { active, over } = event;
 
@@ -89,18 +99,25 @@ const Home = () => {
       const updatedTask = {
         ...taskData,
         category: overContainer,
-        order: tasksByCategory[overContainer].length + 1, // Place at the end
+        order: tasksByCategory[overContainer]?.length + 1 || 1,
       };
+
+      // Optimistically update tasks in the cache
+      queryClient.setQueryData(["tasks", userEmail], (oldTasks = []) => {
+        return oldTasks.map((task) =>
+          task._id === activeTask._id ? { ...task, ...updatedTask } : task
+        );
+      });
 
       try {
         await axios.put(
           `http://localhost:5000/tasks/${activeTask._id}`,
           updatedTask
         );
-        // Invalidate the query to refetch tasks
-        queryClient.invalidateQueries(["tasks", user.email]);
       } catch (error) {
         console.error("Failed to update task:", error);
+        // Rollback on error
+        queryClient.invalidateQueries(["tasks", userEmail]);
       }
     } else {
       // Reordering within the same category
@@ -122,27 +139,60 @@ const Home = () => {
           order: index + 1,
         }));
 
+        // Optimistically update tasks in the cache
+        queryClient.setQueryData(["tasks", userEmail], (oldTasks = []) => {
+          const otherTasks = oldTasks.filter(
+            (task) => task.category !== activeTask.category
+          );
+          return [...otherTasks, ...updatedTasksInCategory];
+        });
+
         try {
           await axios.put("http://localhost:5000/tasks/reorder-tasks", {
             tasks: updatedTasksInCategory,
           });
-          // Invalidate the query to refetch tasks
-          queryClient.invalidateQueries(["tasks", user.email]);
         } catch (error) {
           console.error("Failed to reorder tasks:", error);
+          // Rollback on error
+          queryClient.invalidateQueries(["tasks", userEmail]);
         }
       }
     }
   };
+  // Place conditional returns after hooks
+  if (!userEmail) {
+    return <p>Loading user information...</p>;
+  }
+
+  if (isLoading)
+    return <span className="loading loading-infinity loading-lg"></span>;
+  if (error)
+    return <p className="text-center text-red-500">Error loading tasks</p>;
 
   return (
     <div className="text-center w-11/12 mx-auto">
       <h2 className="text-5xl pt-4 text-purple-400 font-bold">
         Task Management
       </h2>
-      <TaskForm
-        refetch={queryClient.invalidateQueries(["tasks", user?.email])}
-      />
+      <TaskForm refetch={refetch} />
+
+      {/* Render EditTaskForm inside a Modal */}
+      <Modal
+        isOpen={!!editingTask}
+        onRequestClose={() => setEditingTask(null)}
+        contentLabel="Edit Task"
+        className="Modal"
+        overlayClassName="Overlay"
+      >
+        {editingTask && (
+          <EditTaskForm
+            task={editingTask}
+            setEditingTask={setEditingTask}
+            refetch={refetch}
+          />
+        )}
+      </Modal>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -165,6 +215,7 @@ const Home = () => {
                       id={task._id}
                       task={task}
                       setEditingTask={setEditingTask}
+                      refetch={refetch}
                     />
                   ))}
               </TaskColumn>

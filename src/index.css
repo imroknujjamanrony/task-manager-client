@@ -18,3 +18,25 @@ body {
 .gap-2 {
   gap: 0.5rem;
 }
+
+/* styles.css */
+
+/* Modal content styling */
+.Modal {
+  background: #2d2d2d;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 600px;
+  margin: auto;
+  color: white;
+}
+
+/* Modal overlay styling */
+.Overlay {
+  background: rgba(0, 0, 0, 0.75);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
