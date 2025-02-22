@@ -1,8 +1,9 @@
 import { NavLink } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import { FaTasks } from "react-icons/fa";
 
 const Navbar = () => {
-  const { user, logOut } = useAuth(); // Assuming `logout` function exists
+  const { user, logOut } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -13,38 +14,31 @@ const Navbar = () => {
   };
 
   return (
-    <div className="navbar bg-base-100 shadow-lg px-4">
-      {/* Left: Logo */}
+    <div className="navbar bg-blue-600  text-white shadow-lg px-">
+      {/* Left: Logo & Title */}
       <div className="flex-1">
         <NavLink
           to="/"
-          className="btn btn-ghost text-2xl font-bold text-primary"
+          className="btn btn-ghost text-xl font-bold flex items-center gap-2"
         >
+          <FaTasks className="text-2xl" />
           Task Management
         </NavLink>
       </div>
 
       {/* Right: Menu */}
       <div className="flex-none">
-        <ul className="menu menu-horizontal px-1 flex gap-3">
-          <li>
-            <NavLink to="/" className="btn btn-outline btn-primary">
-              Home
-            </NavLink>
-          </li>
-          {/* <li>
-            <NavLink to="/dashboard" className="btn btn-outline btn-secondary">
-              Dashboard
-            </NavLink>
-          </li> */}
+        <ul className="menu menu-horizontal flex gap-3">
+          <img
+            src={user?.photoURL} // Replace with your actual logo/image URL
+            alt="Logo"
+            className="w-12 h-10 rounded-full"
+          />
 
-          {/* Show Logout if logged in, otherwise show Login */}
           {user ? (
             <>
               <li>
-                <p className="text-base text-purple-600 font-normal">
-                  {user?.displayName}
-                </p>
+                <p className="text-base font-normal">{user?.displayName}</p>
               </li>
               <li>
                 <button className="btn btn-error" onClick={handleLogout}>

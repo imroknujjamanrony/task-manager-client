@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 import axios from "axios";
-
 import { createContext, useEffect, useState } from "react";
 import {
   getAuth,
@@ -8,7 +7,6 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   signOut,
-  //   updateProfile,
 } from "firebase/auth";
 import { app } from "../firebase/firebase.config";
 
@@ -21,16 +19,24 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // Sign in with Google
-  const signInWithGoogle = () => {
+  const signInWithGoogle = async () => {
     setLoading(true);
-    return signInWithPopup(auth, googleProvider);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      return result;
+    } finally {
+      setLoading(false); // Ensure loading is stopped
+    }
   };
 
   // Logout
-  const logOut = () => {
+  const logOut = async () => {
     setLoading(true);
-
-    return signOut(auth);
+    try {
+      await signOut(auth);
+    } finally {
+      setLoading(false); // Ensure loading is stopped
+    }
   };
 
   useEffect(() => {
@@ -42,13 +48,12 @@ const AuthProvider = ({ children }) => {
     }
 
     // Monitor auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setLoading(false); // ✅ Fix: Set loading to false after checking auth state
     });
 
-    return () => {
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   const authInfo = {

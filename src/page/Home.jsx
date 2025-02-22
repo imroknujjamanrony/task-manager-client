@@ -52,16 +52,6 @@ const Home = () => {
     enabled: !!userEmail,
   });
 
-  // Monitor tasks data
-  // useEffect(() => {
-  //   console.log("Tasks data updated:", tasks);
-  // }, [tasks]);
-
-  // Monitor editingTask state
-  // useEffect(() => {
-  //   console.log("Current editingTask:", editingTask);
-  // }, [editingTask]);
-
   // Group tasks by category using useMemo
   const tasksByCategory = useMemo(() => {
     return {
