@@ -22,7 +22,9 @@ const TaskCard = ({ task, setEditingTask, refetch }) => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:5000/tasks/${_id}`);
+          await axios.delete(
+            `https://task-management-server-nu-six.vercel.app/tasks/${_id}`
+          );
           MySwal.fire("Deleted!", "Your task has been deleted.", "success");
           refetch(); // Refresh task list
         } catch (error) {

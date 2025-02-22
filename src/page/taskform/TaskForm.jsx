@@ -34,7 +34,10 @@ const TaskForm = ({ refetch }) => {
     };
 
     try {
-      await axios.post("http://localhost:5000/tasks", newTask);
+      await axios.post(
+        "https://task-management-server-nu-six.vercel.app/tasks",
+        newTask
+      );
       Swal.fire("Success", "Task added successfully!", "success");
 
       // Reset input fields

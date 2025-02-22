@@ -23,7 +23,7 @@ const EditTaskForm = ({ task, setEditingTask, refetch }) => {
     try {
       const { _id, ...taskData } = updatedTask;
       const response = await axios.put(
-        `http://localhost:5000/tasks/${_id}`,
+        `https://task-management-server-nu-six.vercel.app/tasks/${_id}`,
         taskData
       );
       console.log("Update response:", response.status, response.data);

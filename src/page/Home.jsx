@@ -44,7 +44,9 @@ const Home = () => {
   } = useQuery({
     queryKey: ["tasks", userEmail],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:5000/tasks/${userEmail}`);
+      const res = await axios.get(
+        `https://task-management-server-nu-six.vercel.app/tasks/${userEmail}`
+      );
       return res.data;
     },
     enabled: !!userEmail,
@@ -111,7 +113,7 @@ const Home = () => {
 
       try {
         await axios.put(
-          `http://localhost:5000/tasks/${activeTask._id}`,
+          `https://task-management-server-nu-six.vercel.app/tasks/${activeTask._id}`,
           updatedTask
         );
       } catch (error) {
@@ -148,9 +150,12 @@ const Home = () => {
         });
 
         try {
-          await axios.put("http://localhost:5000/tasks/reorder-tasks", {
-            tasks: updatedTasksInCategory,
-          });
+          await axios.put(
+            "https://task-management-server-nu-six.vercel.app/tasks/reorder-tasks",
+            {
+              tasks: updatedTasksInCategory,
+            }
+          );
         } catch (error) {
           console.error("Failed to reorder tasks:", error);
           // Rollback on error

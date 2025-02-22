@@ -18,7 +18,10 @@ const TaskEditModal = ({ task, setEditingTask, refetch }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/tasks/${task._id}`, updatedTask);
+      await axios.put(
+        `https://task-management-server-nu-six.vercel.app/tasks/${task._id}`,
+        updatedTask
+      );
       Swal.fire("Updated!", "Task updated successfully!", "success");
       setEditingTask(null);
       refetch();
