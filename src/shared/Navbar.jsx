@@ -1,9 +1,13 @@
 import { NavLink } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { FaTasks, FaBars } from "react-icons/fa";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { ThemeContext } from "../provider/ThemeContext";
+import { FiMoon, FiSun } from "react-icons/fi";
 
 const Navbar = () => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+
   const { user, logOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -26,6 +30,11 @@ const Navbar = () => {
 
         {/* Right: Desktop Menu */}
         <div className="hidden md:flex items-center gap-6">
+          <div className="rounded-full flex justify-start items-center mr-2  text-gray-900 dark:text-white transition">
+            <button onClick={toggleTheme} className=" mr-2">
+              {theme === "dark" ? <FiSun size={24} /> : <FiMoon size={24} />}
+            </button>
+          </div>
           {user && (
             <img
               src={user?.photoURL}
@@ -36,7 +45,10 @@ const Navbar = () => {
           {user ? (
             <>
               <p className="text-base font-normal">{user?.displayName}</p>
-              <button className="btn btn-sm btn-error" onClick={handleLogout}>
+              <button
+                className="btn btn-sm text-white bg-[#d33] hover:bg-[#d33] "
+                onClick={handleLogout}
+              >
                 Logout
               </button>
             </>
@@ -70,7 +82,7 @@ const Navbar = () => {
             <>
               <p className="text-base">{user?.displayName}</p>
               <button
-                className="btn btn-sm btn-error w-full"
+                className="btn btn-sm text-white bg-[#d33] hover:bg-[#d33] w-full"
                 onClick={handleLogout}
               >
                 Logout
